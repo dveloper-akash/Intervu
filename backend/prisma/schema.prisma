@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,17 +7,79 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum QuestionType {
+  MCQ
+  DESCRIPTIVE
+}
+
+enum InterviewStatus {
+  IN_PROGRESS
+  COMPLETED
+}
 
 model Question {
-  id              String   @id @default(uuid())
+  id String @id @default(uuid())
 
   question        String
-  referenceAnswer String?
+  referenceAnswer String
 
-  category        String
-  difficulty      String
+  type    QuestionType
+  options String[]
 
-  tags            String[]
+  category   String
+  difficulty String
 
-  createdAt       DateTime @default(now())
+  tags String[]
+
+  createdAt DateTime @default(now())
+
+  responses Response[]
+}
+
+model Interview {
+  id String @id @default(uuid())
+
+  status InterviewStatus
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  responses Response[]
+  report    InterviewReport?
+}
+
+model Response {
+  id String @id @default(uuid())
+
+  interviewId String
+  questionId  String
+
+  answer String
+
+  score    Float?
+  feedback String?
+
+  createdAt DateTime @default(now())
+
+  interview Interview @relation(fields: [interviewId], references: [id])
+  question  Question  @relation(fields: [questionId], references: [id])
+}
+
+model InterviewReport {
+  id String @id @default(uuid())
+
+  interviewId String @unique
+
+  overallScore Float
+
+  strengths  String[]
+  weaknesses String[]
+
+  recommendations String[]
+
+  createdAt DateTime @default(now())
+
+  interview Interview @relation(fields: [interviewId], references: [id])
 }
